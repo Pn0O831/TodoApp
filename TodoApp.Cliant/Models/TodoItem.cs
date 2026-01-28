@@ -29,7 +29,6 @@ namespace TodoApp.Client.Models
                 {
                     _isCompleted = value;
                     OnPropertyChanged();
-                    _ = UpdateAsync();
                 }
             }
         }
@@ -47,16 +46,6 @@ namespace TodoApp.Client.Models
             _ => "",
         };
 
-        //API呼び出し用
-        private ITodoApi? _api;
-        public void SetApi(ITodoApi api) => _api = api;
-        private async Task UpdateAsync()
-        {
-            if (_api != null)
-            {
-                await _api.UpdateAsync(Id, this);
-            }
-        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         private void OnPropertyChanged([CallerMemberName] string? name = null)
