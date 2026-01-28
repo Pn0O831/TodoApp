@@ -53,7 +53,7 @@ namespace TodoApp.Client.ViewModels
             _api = api;
 
             EditCommand = new RelayCommand<TodoItem>(Edit);
-            DeleteCommand = new RelayCommand<TodoItem>(Delete);
+            DeleteCommand = new RelayCommand<TodoItem>(async item => await Delete(item));
         }
 
         // 一覧取得
@@ -64,11 +64,22 @@ namespace TodoApp.Client.ViewModels
 
             foreach (var item in items)
             {
-                item.SetApi(_api);
+                item.PropertyChanged += async (s, e) =>
+                {
+                    if (e.PropertyName == nameof(TodoItem.IsCompleted))
+                    {
+                        await UpdateItemAsync(item);
+                    }
+                };
                 Items.Add(item);
             }
 
             ApplyFilter();
+        }
+
+        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         public TodoDialogViewModel CreateDialogVm(TodoItem? item = null)
@@ -100,6 +111,13 @@ namespace TodoApp.Client.ViewModels
                 $"全{Items.Count}件（完了: {Items.Count(i => i.IsCompleted)}件 / 未完了: {Items.Count(i => !i.IsCompleted)}件）";
         }
 
+        //更新
+        public async Task UpdateItemAsync(TodoItem item)
+        {
+            await _api.UpdateAsync(item.Id, item);
+            await LoadAsync();
+        }
+
         // 編集
         private void Edit(TodoItem? item)
         {
@@ -111,7 +129,7 @@ namespace TodoApp.Client.ViewModels
         }
 
         // 削除
-        private async void Delete(TodoItem? item)
+        private async Task Delete(TodoItem? item)
         {
             if (item == null) return;
             var result = System.Windows.MessageBox.Show(
