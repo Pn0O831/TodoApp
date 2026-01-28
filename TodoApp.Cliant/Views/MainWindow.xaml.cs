@@ -26,11 +26,10 @@ namespace TodoApp.Client.Views
         public MainWindow(MainViewModel vm)
         {
             InitializeComponent();
-            var api = RestService.For<ITodoApi>("http://localhost:5000/api");
             _vm = vm;
             DataContext = _vm;
 
-            Loaded += async (_, _) => await _vm.LoadAsync();
+            Loaded += async (_, _) => await vm.LoadAsync();
         }
 
         private void AddButton_Click(object sender, RoutedEventArgs e)
