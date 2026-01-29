@@ -48,12 +48,15 @@ namespace TodoApp.Client.ViewModels
         public ICommand EditCommand { get; }
         public ICommand DeleteCommand { get; }
 
+        public ICommand ToggleCompleteCommand { get; }
+
         public MainViewModel(ITodoApi api)
         {
             _api = api;
 
-            EditCommand = new RelayCommand<TodoItem>(Edit);
+            EditCommand = new RelayCommand<TodoItem>(async item => await Edit(item));
             DeleteCommand = new RelayCommand<TodoItem>(async item => await Delete(item));
+            ToggleCompleteCommand = new RelayCommand<TodoItem>(async item => await UpdateItemAsync(item));
         }
 
         // 一覧取得
@@ -63,23 +66,9 @@ namespace TodoApp.Client.ViewModels
             var items = await _api.GetAllAsync();
 
             foreach (var item in items)
-            {
-                item.PropertyChanged += async (s, e) =>
-                {
-                    if (e.PropertyName == nameof(TodoItem.IsCompleted))
-                    {
-                        await UpdateItemAsync(item);
-                    }
-                };
                 Items.Add(item);
-            }
 
             ApplyFilter();
-        }
-
-        private void Item_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         public TodoDialogViewModel CreateDialogVm(TodoItem? item = null)
@@ -115,17 +104,17 @@ namespace TodoApp.Client.ViewModels
         public async Task UpdateItemAsync(TodoItem item)
         {
             await _api.UpdateAsync(item.Id, item);
-            await LoadAsync();
+            ApplyFilter();
         }
 
         // 編集
-        private void Edit(TodoItem? item)
+        private async Task Edit(TodoItem? item)
         {
             var dialogVm = new TodoDialogViewModel(_api, item);
             var dialog = new TodoDialog(dialogVm);
 
             if (dialog.ShowDialog() == true)
-                _ = LoadAsync();
+                await LoadAsync();
         }
 
         // 削除

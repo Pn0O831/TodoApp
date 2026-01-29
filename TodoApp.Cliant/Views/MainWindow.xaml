@@ -45,6 +45,8 @@
                         <DataTemplate>
                             <CheckBox
                                 IsChecked="{Binding IsCompleted,Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                Command="{Binding DataContext.ToggleCompleteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center"/>
                         </DataTemplate>
