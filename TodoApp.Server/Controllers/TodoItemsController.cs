@@ -48,16 +48,6 @@ namespace TodoApp.Server.Controllers
                 query = query.Where(t => !t.IsCompleted);
             }
 
-            //射影
-            var summaries = await _context.TodoItems
-                .Select(t => new 
-                {
-                    t.Id,
-                    t.Title,
-                    t.IsCompleted
-                })
-                .ToListAsync();
-
 
             var items = await query
                 .OrderBy(t => t.DueDate)
@@ -119,7 +109,8 @@ namespace TodoApp.Server.Controllers
             existing.IsCompleted = item.IsCompleted;
             existing.DueDate = item.DueDate;
             existing.Priority = item.Priority;
-            
+            existing.UpdatedAt = DateTime.Now;
+
 
             await _context.SaveChangesAsync();
 
