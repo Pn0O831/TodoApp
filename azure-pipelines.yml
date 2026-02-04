@@ -1,0 +1,51 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+# .NET SDK のセットアップ
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+
+# 依存関係の復元
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'restore'
+    projects: 'TodoApp.Server/**/*.csproj'
+
+# ビルド
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'build'
+    projects: 'TodoApp.Server/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
+
+# 発行（publish）
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    publishWebProjects: false
+    projects: 'TodoApp.Server/**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+# 成果物の保存
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'drop'
+
+# Azure App Service へデプロイ
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'azure-connection'   # ← 作った Service Connection
+    appType: 'webApp'
+    appName: 'api-devops-test-app'          # ← あなたの App Service 名
+    package: '$(Build.ArtifactStagingDirectory)/**/*.zip'
